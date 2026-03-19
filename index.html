@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCA Transfer Receipt Replica - Dynamic</title>
+    <style>
+        :root {
+            --bca-blue: #003366;
+            --text-dark: #334455;
+            --text-light: #384149;
+            --bg-light: #F9FBFC;
+            --success-green: #20C997;
+        }
+
+        body {
+            background-color: #E9ECEF;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Panel Input untuk User */
+        .input-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; color: var(--bca-blue); font-weight: bold; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+
+        /* Container Struk */
+        .receipt-card {
+            background-color: white; /* Ganti ke white jika image tidak ada */
+            background-image: url("BCA-BACKGROUND.png");
+            background-size: contain;
+            width: 100%;
+            max-width: 400px;
+            padding-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 50px 20px 5px 20px;
+            margin: 0 20px;
+            border-bottom: 2px dashed #E0E0E0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .logo-bca { width: 90px; margin-bottom: 10px; }
+
+        .status-container {
+            margin: 20px 0 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .check-circle img { width: 70px; height: auto; }
+
+        .status-title {
+            color: var(--bca-blue);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 10px 0 0 0;
+        }
+
+        .share-btn{
+            margin-right: 3px;
+            box-sizing: border-box;
+        }
+
+        .status-date { color: var(--text-light); font-size: 0.85rem; margin-top: 5px; }
+
+        .amount-container { text-align: center; margin: 10px 0 30px 0; }
+        .amount-value { color: #003366; font-size: 1.6rem; font-weight: 750; }
+
+        .details { padding: 0 20px; position: relative; z-index: 1; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: flex-start; }
+        .label { color: var(--text-light); font-size: 0.9rem; flex: 1; }
+        .value { color: var(--text-dark); font-size: 0.9rem; font-weight: 635; text-align: right; flex: 1; word-break: break-all; }
+        .value-bold { text-transform: uppercase; }
+        .ref-no { font-family: monospace; font-size: 0.8rem; line-height: 1.2; }
+
+        .kontainer-garis { margin-top: 15px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .garis { border-top: 1px solid #ededed; }
+
+        /* Menu Bawah */
+        .bottom-menu { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 30px 20px 0 20px; width: 100%; box-sizing: border-box; }
+        .circle-btn { width: 50px; height: 50px; border: 1.5px solid var(--bca-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; background: white; cursor: pointer; }
+        .circle-btn img { width: 22px; height: 22px; }
+        .done-btn { flex-grow: 1; height: 52px; background-color: var(--bca-blue); color: white; border: none; border-radius: 30px; font-size: 1.1rem; font-weight: 500; cursor: pointer; }
+
+        /* --- RESPONSIVE DESIGN FOR MOBILE --- */
+    @media screen and (max-width: 480px) {
+        body {
+            padding: 0; /* Mengurangi padding luar agar lebih luas */
+        }
+
+        .input-panel {
+            padding: 15px;
+            max-width: 100%; /* Panel selebar layar HP */
+        }
+
+        .receipt-card {
+            max-width: 100%; /* Struk selebar layar HP */
+            box-shadow: none; /* Opsional: hilangkan bayangan agar lebih clean di mobile */
+        }
+
+        .header {
+            padding: 40px 10px 5px 10px; /* Sesuaikan posisi logo BCA */
+            margin: 0 10px;
+        }
+
+        .amount-value {
+            font-size: 1.4rem; /* Sedikit lebih kecil agar nominal panjang tidak berantakan */
+        }
+
+        .details {
+            padding: 0 15px;
+        }
+
+        .label, .value {
+            font-size: 0.85rem; /* Ukuran teks lebih pas untuk layar kecil */
+        }
+
+        /* Membuat tombol menu bawah lebih proporsional */
+        .bottom-menu {
+            padding: 20px 15px 0 15px;
+            gap: 10px;
+        }
+
+        .done-btn {
+            font-size: 1rem;
+            height: 48px;
+        }
+
+        .circle-btn {
+            width: 45px;
+            height: 45px;
+        }
+    }
+
+    </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<body>
+    
+    <!-- SERIOUS WARNING
+
+    This code is created solely for entertainment/prank purposes and is not intended to be used for any harmful, illegal, or malicious activities.
+
+    Any misuse, negative impact, damages, or legal consequences resulting from the use of this code are entirely the responsibility of the user. I, as the creator, shall not be held liable for any actions taken beyond the intended purpose of this code.
+
+    By using this code, you acknowledge that you have read, understood, and agreed to all the terms stated above. -->
+
+    <div class="input-panel">
+    <h3 style="margin-top:0; color: var(--bca-blue);">Receipt Prank Editor</h3>
+    <div class="input-group">
+        <label>Beneficiary Name</label>
+        <input type="text" id="input-name" placeholder="Steven Leo" oninput="updateReceipt()">
+    </div>
+    <div class="input-group">
+        <label>Account Number</label>
+        <input type="text" id="input-acc" placeholder="1234567899" oninput="updateReceipt()" maxlength="10">
+    </div>
+    <div class="input-group">
+        <label>Transfer Type</label>
+        <select id="input-type" onchange="updateReceipt()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            <option value="BCA Account">BCA Account</option>
+            <option value="BSI Account">BSI Account</option>
+        </select>
+    </div>
+    <div class="input-group">
+    <label>Amount (Numbers only)</label>
+    <input type="number" id="input-amount" placeholder="5000" oninput="updateReceipt()">
+    </div>
+    <div class="input-group">
+        <label>Remarks</label>
+        <input type="text" id="input-remarks" placeholder="Tuliskan Pesan" oninput="updateReceipt()">
+    </div>
+    <button onclick="generateRef()" style="width:100%; padding:10px; background:#eef2f7; border:1px solid #ccc; cursor:pointer; border-radius:6px; font-weight:bold;">Randomize Ref No.</button>
+</div>
+
+    <div class="receipt-card" id="receipt-capture">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" alt="BCA" class="logo-bca">
+        </div>
+
+        <div class="status-container">
+            <div class="check-circle">
+                <img src="Checklist-Bca-jukebox-bg-removed.png" alt="Icon">
+            </div>
+            <h2 class="status-title">Transfer Successful</h2>
+            <div class="status-date" id="current-date">Memuat waktu...</div>
+        </div>
+
+        <div class="amount-container">
+            <div class="amount-value" id="display-amount-main">IDR 1,000.00</div>
+        </div>
+
+        <div class="details">
+            <div class="row">
+                <span class="label">Beneficiary Name</span>
+                <span class="value value-bold" id="display-name">Steven Leo</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+            
+            <div class="row">
+                <span class="label">Beneficiary Account</span>
+                <span class="value" id="display-acc">333 - 333 - 4444</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Transaction Type</span>
+                <span class="value" id="display-type">Transfer to<br>BCA Account</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Target Currency</span>
+                <span class="value">IDR - Indonesian Rupiah</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Source of Fund</span>
+                <span class="value">628 - 2** - **42</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Source Currency</span>
+                <span class="value">IDR - Indonesian Rupiah</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Target Amount</span>
+                <span class="value" id="display-amount-sub">IDR 1,000.00</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Remarks</span>
+                <span class="value" id="display-remarks">Tuliskan Pesan</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+
+            <div class="row">
+                <span class="label">Reference No.</span>
+                <span class="value ref-no" id="display-ref">GENERATING...</span>
+            </div>
+            <div class="kontainer-garis"><div class="garis"></div></div>
+        </div>
+    
+        <div class="bottom-menu">
+            <button class="circle-btn" onclick="alert('Share feature triggered')">
+                <img class="share-btn" src="https://cdn-icons-png.flaticon.com/512/1358/1358023.png" alt="Share" style="filter: invert(24%) sepia(87%) saturate(2223%) hue-rotate(191deg) brightness(91%) contrast(101%);">
+            </button>
+            <button class="circle-btn" id="download-btn">
+                <img src="https://cdn-icons-png.flaticon.com/512/724/724933.png" alt="Download" style="filter: invert(24%) sepia(87%) saturate(2223%) hue-rotate(191deg) brightness(91%) contrast(101%);">
+            </button>
+            <button class="done-btn" onclick="window.location.reload()">Done</button>
+        </div>
+    </div>
+
+<script>
+    // Fungsi Update Tampilan Otomatis
+    function updateReceipt() {
+    // 1. Handle Nama
+    const nameInput = document.getElementById('input-name').value || "STEVEN LEO";
+    document.getElementById('display-name').innerText = nameInput.toUpperCase();
+
+    // 2. Handle Rekening (Auto Format XXX - XXX - XXXX)
+    let accRaw = document.getElementById('input-acc').value.replace(/\D/g, ''); 
+    let formattedAcc = "";
+    if (accRaw.length > 0) {
+        const p1 = accRaw.substring(0, 3);
+        const p2 = accRaw.substring(3, 6);
+        const p3 = accRaw.substring(6, 10);
+        if (accRaw.length > 6) formattedAcc = `${p1} - ${p2} - ${p3}`;
+        else if (accRaw.length > 3) formattedAcc = `${p1} - ${p2}`;
+        else formattedAcc = p1;
+    }
+    document.getElementById('display-acc').innerText = formattedAcc || "333 - 333 - 4444";
+
+    // 3. Handle Dropdown Tipe Transfer (Pastikan ID display-type ada di HTML)
+    const typeValue = document.getElementById('input-type').value;
+    const typeDisplay = document.getElementById('display-type');
+    if(typeDisplay) {
+        typeDisplay.innerHTML = `Transfer to<br>${typeValue}`;
+    }
+
+    // 4. Handle Amount (IDR 5,000.00)
+    let amountRaw = document.getElementById('input-amount').value;
+    let finalDisplay = "1,000.00"; // Default
+
+    if (amountRaw !== "" && !isNaN(amountRaw)) {
+        finalDisplay = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(parseFloat(amountRaw));
+    }
+    
+    // Update ke dua elemen display
+    document.getElementById('display-amount-main').innerText = "IDR " + finalDisplay;
+    document.getElementById('display-amount-sub').innerText = "IDR " + finalDisplay;
+
+    // 5. Handle Remarks
+    const remarksInput = document.getElementById('input-remarks').value || "Tuliskan Pesan";
+    document.getElementById('display-remarks').innerText = remarksInput;
+    }
+
+    function generateRef() {
+        const chars = '0123456789ABCDEF';
+        const makeStr = (len) => Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        
+        const ref = `${makeStr(8)}-${makeStr(4)}-${makeStr(4)}-${makeStr(4)}-${makeStr(12)}`;
+        
+        // Membagi string agar rapi dengan <br> seperti di m-BCA asli
+        const displayRef = document.getElementById('display-ref');
+        if (displayRef) {
+            displayRef.innerHTML = ref.substring(0, 18) + "<br>" + ref.substring(18);
+        }
+    }
+
+    // Fungsi Download
+    document.getElementById('download-btn').addEventListener('click', function() {
+        const receipt = document.getElementById('receipt-capture');
+        html2canvas(receipt, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        }).then(canvas => {
+            const image = canvas.toDataURL("image/jpeg", 1.0);
+            const link = document.createElement('a');
+            link.download = `BCA-Transfer-${Date.now()}.jpg`;
+            link.href = image;
+            link.click();
+        });
+    });
+
+    // Waktu Realtime
+    function updateDateTime() {
+        const now = new Date();
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        document.getElementById('current-date').innerText = formattedDate;
+    }
+
+    window.onload = () => {
+        updateDateTime();
+        generateRef();
+    };
+</script>
+
+</body>
+</html>
